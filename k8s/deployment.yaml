@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-autoscaling-service
+  labels:
+    app: cloud-autoscaling-service
+spec:
+  # Start with 2 copies (replicas) of your app
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cloud-autoscaling-service
+  template:
+    metadata:
+      labels:
+        app: cloud-autoscaling-service
+    spec:
+      containers:
+      - name: node-service
+        image: evanfy/cloud-autoscaling-service:v1
+        ports:
+        - containerPort: 3000
+        # Resource requests and limits (for auto-scaling)
+        resources:
+          requests:
+            cpu: 100m        # Request 100 millicores (0.1 CPU)
+            memory: 128Mi    # Request 128MB RAM
+          limits:
+            cpu: 500m        # Max 500 millicores (0.5 CPU)
+            memory: 256Mi    # Max 256MB RAM
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
